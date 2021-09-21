@@ -9,6 +9,8 @@ let floor_x = 0;
 let grav = 0.5;
 
 let spawnTime = 100, spawnCounter = 0;
+
+let death_screen = false;
     
 let player = {
     x: 40,
@@ -103,7 +105,7 @@ function restart() {
     }
     score = 0;
     current_obstacles = [];
-
+    death_screen = false;
 }
 
 function loop() {
@@ -113,33 +115,35 @@ function loop() {
 }
 
 function update() {
-    scoreCounter++;
-    if (scoreCounter >= scoreTime) {
-        score++;
-        scoreCounter = 0;
-    }
-    speed += 0.001;
-    if (speed > topSpeed) speed = topSpeed;
-    floor_x -= speed;
-    if (floor_x < -1200) {
-        floor_x = 0;
-    }
-
-    spawnCounter++;
-    if (spawnCounter > spawnTime) {
-        spawnRandomObstacle();
-        spawnTime = 40 + Math.floor(Math.random() * 40);
-        spawnCounter = 0;
-    }
-
-    player.update();
-    current_obstacles.forEach((it) => {
-        it.update();
-
-        if (checkCollision(player.getHitbox(), it.getHitbox())) {
-            restart();
+    if (!death_screen) {        
+        scoreCounter++;
+        if (scoreCounter >= scoreTime) {
+            score++;
+            scoreCounter = 0;
         }
-    });
+        speed += 0.001;
+        if (speed > topSpeed) speed = topSpeed;
+        floor_x -= speed;
+        if (floor_x < -1200) {
+            floor_x = 0;
+        }
+
+        spawnCounter++;
+        if (spawnCounter > spawnTime) {
+            spawnRandomObstacle();
+            spawnTime = 40 + Math.floor(Math.random() * 40);
+            spawnCounter = 0;
+        }
+
+        player.update();
+        current_obstacles.forEach((it) => {
+            it.update();
+
+            if (checkCollision(player.getHitbox(), it.getHitbox())) {
+                death_screen = true;
+            }
+        });
+    }
 }
 
 function render() {
@@ -159,11 +163,20 @@ function render() {
     ctx.drawImage(spritesheet, 755, 2, 19, 11, 440, 25, 19, 11);
     drawAnyNumber(high_score, 470, 25, 5);
     drawAnyNumber(score, 530, 25, 5);
+
+    if (death_screen) {
+        ctx.drawImage(spritesheet, 655, 15, 191, 11, width/2 - 192/2, 40, 191, 11);
+        ctx.drawImage(spritesheet, 2, 2, 36, 32, width / 2 - 36 / 2, 75, 36, 32);
+    }
 }
 
 function keydown(e) {
     const key = e.keyCode;
     if (key == 32 || key == 38) {
+        if (death_screen) {
+            restart();
+            return;
+        }
         player.jump();
     }
 
