@@ -151,17 +151,11 @@ function render() {
 
     player.render();
     current_obstacles.forEach((it) => {
-        const hb = { x: it.x + it.sx, y: it.y + it.sy, w: it.sw, h: it.sh };
         it.render();
     });
 
-    // HUD
-    ctx.fillStyle = "#535353";
-    ctx.fillText("HI " + high_score + "  " + score, 100, 100);
-
-    for (let i = 0; i < 10; i++)
-        drawNumber(i, 10 + i * 20, 10);
-    
+    // HUD    
+    ctx.drawImage(spritesheet, 755, 2, 19, 11, 440, 25, 19, 11);
     drawAnyNumber(high_score, 470, 25, 5);
     drawAnyNumber(score, 530, 25, 5);
 }
