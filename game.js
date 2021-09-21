@@ -3,52 +3,55 @@ let width = 600, height = 150;
 
 let spritesheet = document.getElementById("spritesheet");
 
-let score = 0, high_score = 0;
-let time = 0, speed = 5, topSpeed;
+let score = 0, high_score = 0, scoreTime = 7; scoreCounter = 0;
+let time = 0, startSpeed = 5, speed = startSpeed, topSpeed = 12;
 let floor_x = 0;
 let grav = 0.5;
 
 let spawnTime = 100, spawnCounter = 0;
     
 let player = {
-        x: 40,
-        y: 95,
-        vy: 0,
-        crouch: false,
-        hitbox: {
-            x: 10,
-            y: 5,
-            w: 20,
-            h: 35
-        },
-        hb_stand: {
-            x: 10,
-            y: 5,
-            w: 20,
-            h: 35
-        },
-        hb_crouch: {
-            x: 10,
-            y: 25,
-            w: 40,
-            h: 15
-        },
-        update: function () {
-            this.vy += grav;
-            this.y += this.vy;
-            if (this.y > 95) this.y = 95;
-        },
-        render: function () {
-            if (!this.crouch) ctx.drawImage(spritesheet, 936, 2, 44, 47, this.x, this.y, 44, 47);
-            else ctx.drawImage(spritesheet, 1112, 2, 59, 47, this.x, this.y, 59, 47);
-        },
-        jump: function () {
-            if (player.y == 95) this.vy = -9;
-        },
-        do_crouch: function (b) {
-            this.crouch = b;
-            this.hitbox = !b ? this.hb_stand : this.hb_crouch;
-        }
+    x: 40,
+    y: 95,
+    vy: 0,
+    crouch: false,
+    hitbox: {
+        x: 10,
+        y: 5,
+        w: 20,
+        h: 35
+    },
+    hb_stand: {
+        x: 10,
+        y: 5,
+        w: 20,
+        h: 35
+    },
+    hb_crouch: {
+        x: 10,
+        y: 25,
+        w: 40,
+        h: 15
+    },
+    update: function () {
+        this.vy += grav;
+        this.y += this.vy;
+        if (this.y > 95) this.y = 95;
+    },
+    render: function () {
+        if (!this.crouch) ctx.drawImage(spritesheet, 936, 2, 44, 47, this.x, this.y, 44, 47);
+        else ctx.drawImage(spritesheet, 1112, 2, 59, 47, this.x, this.y, 59, 47);
+    },
+    jump: function () {
+        if (player.y == 95) this.vy = -9;
+    },
+    do_crouch: function (b) {
+        this.crouch = b;
+        this.hitbox = !b ? this.hb_stand : this.hb_crouch;
+    },
+    getHitbox: function () {
+        return {x: this.x + this.hitbox.x, y: this.y + this.hitbox.y, w: this.hitbox.w, h: this.hitbox.h};
+    }
 };
 
 let obstacles = [
@@ -90,6 +93,15 @@ function init() {
     spawnRandomObstacle();
 }
 
+function restart() {
+    speed = startSpeed;
+    player.y = 95;
+    if (score > high_score) high_score = score;
+    score = 0;
+    current_obstacles = [];
+
+}
+
 function loop() {
     update();
     render();
@@ -97,7 +109,11 @@ function loop() {
 }
 
 function update() {
-    time++;
+    scoreCounter++;
+    if (scoreCounter >= scoreTime) {
+        score++;
+        scoreCounter = 0;
+    }
     speed += 0.001;
     if (speed > topSpeed) speed = topSpeed;
     floor_x -= speed;
@@ -115,6 +131,10 @@ function update() {
     player.update();
     current_obstacles.forEach((it) => {
         it.update();
+
+        if (checkCollision(player.getHitbox(), it.getHitbox())) {
+            restart();
+        }
     });
 }
 
@@ -127,10 +147,14 @@ function render() {
     ctx.drawImage(spritesheet, 2, 54, 1200, 11, floor_x+1200, 130, 1200, 11);
 
     player.render();
-    renderHitbox(player);
     current_obstacles.forEach((it) => {
+        const hb = { x: it.x + it.sx, y: it.y + it.sy, w: it.sw, h: it.sh };
         it.render();
     });
+
+    // HUD
+    ctx.fillStyle = "#535353";
+    ctx.fillText("HI " + high_score + "  " + score, 100, 100);
 }
 
 function keydown(e) {
@@ -159,6 +183,12 @@ function spawnRandomObstacle() {
         i: i,
         x: width,
         y: 142 - obstacles[i].sh,
+        hitbox: {
+            x: 0,
+            y: 0,
+            w: obstacles[i].sw,
+            h: obstacles[i].sh,
+        },
         update: function() {
             this.x -= speed;
             if (this.x < 0 - obstacles[this.i].sw) this.die();
@@ -168,6 +198,9 @@ function spawnRandomObstacle() {
         },
         die: function () {
             delete current_obstacles[this.index];
+        },
+        getHitbox: function () {
+            return { x: this.x + this.hitbox.x, y: this.y + this.hitbox.y, w: this.hitbox.w, h: this.hitbox.h };
         }
     };
     current_obstacles.push(obs);
@@ -175,6 +208,10 @@ function spawnRandomObstacle() {
 
 function renderObstacle(i, x, y) {
     ctx.drawImage(spritesheet, obstacles[i].sx, obstacles[i].sy, obstacles[i].sw, obstacles[i].sh, x, y, obstacles[i].sw, obstacles[i].sh);
+}
+
+function checkCollision(hb0, hb1) {
+    return hb0.x + hb0.w > hb1.x && hb0.y + hb0.h > hb1.y && hb0.x < hb1.x + hb1.w && hb0.y < hb1.y + hb1.h;
 }
 
 function renderHitbox(entity) {
