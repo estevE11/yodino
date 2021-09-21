@@ -3,7 +3,7 @@ let width = 600, height = 150;
 
 let spritesheet = document.getElementById("spritesheet");
 
-let score = 0, high_score = 0, scoreTime = 7; scoreCounter = 0;
+let score = 0, high_score = localStorage.getItem("hi") || 0, scoreTime = 5; scoreCounter = 0;
 let time = 0, startSpeed = 5, speed = startSpeed, topSpeed = 12;
 let floor_x = 0;
 let grav = 0.5;
@@ -96,7 +96,10 @@ function init() {
 function restart() {
     speed = startSpeed;
     player.y = 95;
-    if (score > high_score) high_score = score;
+    if (score > high_score) {
+        high_score = score;
+        localStorage.setItem("hi", high_score);
+    }
     score = 0;
     current_obstacles = [];
 
@@ -155,6 +158,12 @@ function render() {
     // HUD
     ctx.fillStyle = "#535353";
     ctx.fillText("HI " + high_score + "  " + score, 100, 100);
+
+    for (let i = 0; i < 10; i++)
+        drawNumber(i, 10 + i * 20, 10);
+    
+    drawAnyNumber(high_score, 470, 25, 5);
+    drawAnyNumber(score, 530, 25, 5);
 }
 
 function keydown(e) {
@@ -219,6 +228,23 @@ function renderHitbox(entity) {
     ctx.strokeStyle = color(0, 255, 0);
     ctx.rect(entity.x + entity.hitbox.x, entity.y + entity.hitbox.y, entity.hitbox.w, entity.hitbox.h);
     ctx.stroke();
+}
+
+function drawNumber(number, x, y) {
+    if (number > 9 || number < 0) return;
+    ctx.drawImage(spritesheet, 655 + (number*10), 2, 9, 11, x, y, 9, 11);
+}
+
+function drawAnyNumber(number, x, y, len) {
+    const numlen = (number + "").length;
+
+    for (let i = 0; i < len - numlen; i++) {
+        drawNumber(0, x + (i * 10), y);
+    }
+    const strnum = number + "";
+    for (let i = len - numlen; i < len; i++) {
+        drawNumber(parseInt(strnum.charAt(i - (len - numlen))), x + (i * 10), y);
+    }
 }
 
 function color(r, g, b) {
