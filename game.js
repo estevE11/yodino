@@ -43,6 +43,7 @@ let player = {
         else ctx.drawImage(spritesheet, 1112, 2, 59, 47, this.x, this.y, 59, 47);
     },
     jump: function () {
+        if (this.crouch) return;
         if (player.y == 95) this.vy = -9;
     },
     do_crouch: function (b) {
@@ -168,6 +169,7 @@ function keydown(e) {
 
     if (key == 40) {
         player.do_crouch(true);
+        grav = 1;
     }
 }
 
@@ -176,6 +178,7 @@ function keyup(e) {
 
     if (key == 40) {
         player.do_crouch(false);
+        grav = 0.5;
     }
 }
 
