@@ -195,7 +195,7 @@ function keyup(e) {
     }
 }
 
-function spawnRandomObstacle() {
+function spawnRandomObstacleTree() {
     const i = Math.floor(Math.random() * obstacles.length);
     let obs = {
         index: current_obstacles.length,
@@ -223,6 +223,43 @@ function spawnRandomObstacle() {
         }
     };
     current_obstacles.push(obs);
+}
+
+function spawnRandomObstacleBird() { // 134, 8
+    let obs = {
+        index: current_obstacles.length,
+        x: width,
+        y: 142 - this.h, // needs to be changed
+        w: 46,
+        h: 34,
+        hitbox: {
+            x: 0,
+            y: 0,
+            w: this.w,
+            h: this.h,
+        },
+        update: function () {
+            this.x -= speed;
+            if (this.x < 0 - this.w) this.die();
+        },
+        render: function () {
+            ctx.drawImage(spritesheet, 134, 8, this.w, this.h, this.x, this.y, this.w, this.h);
+        },
+        die: function () {
+            delete current_obstacles[this.index];
+        },
+        getHitbox: function () {
+            return { x: this.x + this.hitbox.x, y: this.y + this.hitbox.y, w: this.hitbox.w, h: this.hitbox.h };
+        }
+    };
+    current_obstacles.push(obs);
+}
+
+function spawnRandomObstacle() {
+    const rand = Math.random();
+//    spawnRandomObstacleTree();
+    console.log('beunas');
+    spawnRandomObstacleBird();
 }
 
 function renderObstacle(i, x, y) {
